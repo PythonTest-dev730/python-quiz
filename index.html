@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="hy">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Quiz — 3 միավոր</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background: #f9f9f9;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        .instructions {
+            text-align: center;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+
+        .question {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid #ccc;
+        }
+
+        button {
+            background: #0078d7;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background: #005fa3;
+        }
+
+        #score {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2b7a0b;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>💻 Python թեստ (3 միավոր)</h1>
+    <div class="instructions">⏳ Տևողություն՝ 45 րոպե</div>
+
+    <form id="quizForm">
+        <div class="question">
+            <p><b>1. Գրեք Python կոդ՝ երկու թվերի գումար հաշվելու համար։</b> <small>(0.3 միավոր)</small></p>
+            <textarea name="q1"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>2. Գրեք Python կոդ, որը ստուգում է՝ թիվը զույգ է, թե կենտ։</b> <small>(0.3 միավոր)</small></p>
+            <textarea name="q2"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>3. Գրեք ծրագիր, որը տպում է 1-ից 10 թվերը։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q3"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>4. Գրեք ծրագիր, որը գտնում է առավելագույնը երեք թվերից։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q4"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>5. Գրեք ծրագիր՝ ստուգելու, արդյոք տրված թիվը պարզ է։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q5"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>6. Գրեք ծրագիր, որը հաշվարկում է թվերի գումարը ցուցակում։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q6"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>7. Գրեք ֆունկցիա, որը վերադարձնում է տեքստի երկարությունը։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q7"></textarea>
+        </div>
+
+        <div class="question">
+            <p><b>8. Գրեք ծրագիր, որը հաշվում է Factorial-ը (ռեկուրսիվ ձևով)։</b> <small>(0.4 միավոր)</small></p>
+            <textarea name="q8"></textarea>
+        </div>
+
+        <div style="text-align:center;">
+            <button type="button" onclick="calculateScore()">Հաշվել միավորները</button>
+            <button type="button" onclick="downloadCSV()">⬇️ Ներբեռնել CSV արդյունքը</button>
+        </div>
+    </form>
+
+    <div id="score"></div>
+
+    <script>
+        // Գնահատման հաշվարկ
+        function calculateScore() {
+            const answers = new FormData(document.getElementById('quizForm'));
+            let score = 0;
+            const weights = [0.3, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4];
+            let i = 0;
+            for (const value of answers.values()) {
+                if (value.trim() !== '') score += weights[i];
+                i++;
+            }
+            if (score > 3) score = 3;
+            document.getElementById('score').textContent = `Քո միավորը՝ ${score.toFixed(1)} / 3.0`;
+        }
+
+        // CSV ներբեռնում
+        function downloadCSV() {
+            const formData = new FormData(document.getElementById('quizForm'));
+            let csvContent = 'Question,Answer\\n';
+            for (const [key, value] of formData.entries()) {
+                const safeValue = value.replace(/\\n/g, ' ').replace(/,/g, ';');
+                csvContent += `${key},\"${safeValue}\"\\n`;
+            }
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'answers.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+
+</html>
