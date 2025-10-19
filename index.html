@@ -29,6 +29,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
             margin-bottom: 20px;
+            position: relative;
         }
 
         textarea {
@@ -37,6 +38,8 @@
             border-radius: 8px;
             padding: 8px;
             border: 1px solid #ccc;
+            font-family: monospace;
+            font-size: 1em;
         }
 
         button {
@@ -54,11 +57,26 @@
         }
 
         #score {
-            font-size: 1.3em;
+            font-size: 1.2em;
             font-weight: bold;
             color: #2b7a0b;
             text-align: center;
             margin-top: 20px;
+        }
+
+        .status {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.3em;
+        }
+
+        .correct {
+            color: #2b7a0b;
+        }
+
+        .incorrect {
+            color: #d9534f;
         }
     </style>
 </head>
@@ -70,46 +88,54 @@
     <form id="quizForm">
         <div class="question">
             <p><b>1. Գրեք Python կոդ՝ երկու թվերի գումար հաշվելու համար։</b> <small>(0.3 միավոր)</small></p>
-            <textarea name="q1"></textarea>
+            <textarea name="q1" placeholder="Օրինակ՝ a = int(input()) ..."></textarea>
+            <span class="status" id="status-q1"></span>
         </div>
 
         <div class="question">
             <p><b>2. Գրեք Python կոդ, որը ստուգում է՝ թիվը զույգ է, թե կենտ։</b> <small>(0.3 միավոր)</small></p>
-            <textarea name="q2"></textarea>
+            <textarea name="q2" placeholder="Օրինակ՝ n = int(input()) ..."></textarea>
+            <span class="status" id="status-q2"></span>
         </div>
 
         <div class="question">
             <p><b>3. Գրեք ծրագիր, որը տպում է 1-ից 10 թվերը։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q3"></textarea>
+            <textarea name="q3" placeholder="Օրինակ՝ for i in range(1,11): ..."></textarea>
+            <span class="status" id="status-q3"></span>
         </div>
 
         <div class="question">
             <p><b>4. Գրեք ծրագիր, որը գտնում է առավելագույնը երեք թվերից։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q4"></textarea>
+            <textarea name="q4" placeholder="Օրինակ՝ max_val = max(a,b,c) ..."></textarea>
+            <span class="status" id="status-q4"></span>
         </div>
 
         <div class="question">
             <p><b>5. Գրեք ծրագիր՝ ստուգելու, արդյոք տրված թիվը պարզ է։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q5"></textarea>
+            <textarea name="q5" placeholder="Օրինակ՝ def is_prime(n): ..."></textarea>
+            <span class="status" id="status-q5"></span>
         </div>
 
         <div class="question">
             <p><b>6. Գրեք ծրագիր, որը հաշվարկում է թվերի գումարը ցուցակում։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q6"></textarea>
+            <textarea name="q6" placeholder="Օրինակ՝ numbers = [1,2,3] ... total = sum(numbers) ..."></textarea>
+            <span class="status" id="status-q6"></span>
         </div>
 
         <div class="question">
             <p><b>7. Գրեք ֆունկցիա, որը վերադարձնում է տեքստի երկարությունը։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q7"></textarea>
+            <textarea name="q7" placeholder="Օրինակ՝ def text_length(s): return len(s) ..."></textarea>
+            <span class="status" id="status-q7"></span>
         </div>
 
         <div class="question">
             <p><b>8. Գրեք ծրագիր, որը հաշվում է Factorial-ը (ռեկուրսիվ ձևով)։</b> <small>(0.4 միավոր)</small></p>
-            <textarea name="q8"></textarea>
+            <textarea name="q8" placeholder="Օրինակ՝ def factorial(n): ..."></textarea>
+            <span class="status" id="status-q8"></span>
         </div>
 
         <div style="text-align:center;">
-            <button type="button" onclick="calculateScore()">Հաշվել միավորները</button>
+            <button type="button" onclick="checkAnswers()">Հաշվել միավորները</button>
             <button type="button" onclick="downloadCSV()">⬇️ Ներբեռնել CSV արդյունքը</button>
         </div>
     </form>
@@ -117,29 +143,44 @@
     <div id="score"></div>
 
     <script>
-        // Գնահատման հաշվարկ
-        function calculateScore() {
+        function checkAnswers() {
             const answers = new FormData(document.getElementById('quizForm'));
             let score = 0;
-            const weights = [0.3, 0.3, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4];
-            let i = 0;
-            for (const value of answers.values()) {
-                if (value.trim() !== '') score += weights[i];
-                i++;
-            }
+
+            const checks = [
+                { key: 'q1', keywords: ['input', '+'], points: 0.3 },
+                { key: 'q2', keywords: ['if', '%', '2'], points: 0.3 },
+                { key: 'q3', keywords: ['for', 'range'], points: 0.4 },
+                { key: 'q4', keywords: ['max', '(', ')'], points: 0.4 },
+                { key: 'q5', keywords: ['def', 'prime', 'for', 'in'], points: 0.4 },
+                { key: 'q6', keywords: ['sum', 'numbers'], points: 0.4 },
+                { key: 'q7', keywords: ['len'], points: 0.4 },
+                { key: 'q8', keywords: ['def', 'factorial', 'return'], points: 0.4 },
+            ];
+
+            checks.forEach(item => {
+                const ans = answers.get(item.key).toLowerCase();
+                const correct = item.keywords.every(kw => ans.includes(kw));
+                score += correct ? item.points : 0;
+
+                // Ավելացնենք ✔/✖ կողքին
+                const statusEl = document.getElementById('status-' + item.key);
+                statusEl.textContent = correct ? '✔' : '✖';
+                statusEl.className = correct ? 'status correct' : 'status incorrect';
+            });
+
             if (score > 3) score = 3;
             document.getElementById('score').textContent = `Քո միավորը՝ ${score.toFixed(1)} / 3.0`;
         }
 
-        // CSV ներբեռնում
         function downloadCSV() {
             const formData = new FormData(document.getElementById('quizForm'));
-            let csvContent = 'Question,Answer\\n';
+            let csvContent = 'Question,Answer\n';
             for (const [key, value] of formData.entries()) {
-                const safeValue = value.replace(/\\n/g, ' ').replace(/,/g, ';');
-                csvContent += `${key},\"${safeValue}\"\\n`;
+                const safeValue = value.replace(/\n/g, '↵').replace(/,/g, ';');
+                csvContent += `${key},"${safeValue}"\n`;
             }
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([`\uFEFF${csvContent}`], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
